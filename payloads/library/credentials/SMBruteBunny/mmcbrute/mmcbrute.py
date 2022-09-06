@@ -54,11 +54,9 @@ class MMCBrute(object):
 			self.len_passwords = sum((1 for _ in self.passwords))
 			self.passwords.seek(os.SEEK_SET)
 
-		if self.user_as_pass and passwords is not None:
-			self.len_passwords += 1
-
-		elif self.user_as_pass:
-			self.passwords = False
+		if self.user_as_pass:
+			if passwords is None:
+				self.passwords = False
 			self.len_passwords += 1
 
 		self.totals = self.len_usernames * self.len_passwords
@@ -78,8 +76,7 @@ class MMCBrute(object):
 			user = user[-1].strip()
 			if self.user_as_pass:
 				self.update_progress()
-				next_user = self.login(self.domain, user, user, smb_connection)
-				if next_user:
+				if next_user := self.login(self.domain, user, user, smb_connection):
 					# Restablish smb_connection to avoid false positves
 					smb_connection.close()
 					smb_connection = SMBConnection(self.target, self.target)
@@ -89,8 +86,9 @@ class MMCBrute(object):
 				self.passwords.seek(os.SEEK_SET)
 				for password in enumerate(self.passwords):
 					self.update_progress()
-					next_user = self.login(self.domain, user, password[-1].strip(), smb_connection)
-					if next_user:
+					if next_user := self.login(
+						self.domain, user, password[-1].strip(), smb_connection
+					):
 						# Restablish smb_connection to avoid false positves
 						smb_connection.close()
 						smb_connection = SMBConnection(self.target, self.target)

@@ -5,7 +5,7 @@ ansiDict = {}
 def getDict(SWITCH_POSITION):
 	#read ansiDict.txt file to get the bytes for the widows altcodes (ascii 128-255)
 	altcode = 0
-	with open('/root/udisk/payloads/'+SWITCH_POSITION+'/ansiDict.txt', 'rb') as f:
+	with open(f'/root/udisk/payloads/{SWITCH_POSITION}/ansiDict.txt', 'rb') as f:
 		for line in f:
 			line = str(binascii.hexlify(line))
 			while line.endswith('0a') or line.endswith('0d'):
@@ -17,10 +17,10 @@ def getDict(SWITCH_POSITION):
 			altcode += 1
 
 def main(SWITCH_POSITION):
-	localDir = '/root/udisk/payloads/' + SWITCH_POSITION + '/'
+	localDir = f'/root/udisk/payloads/{SWITCH_POSITION}/'
 	lineCount = 0
-	with open(localDir + 'payload.txt', 'a+') as payload:
-		with open(localDir + 'img.txt', 'rb') as img:
+	with open(f'{localDir}payload.txt', 'a+') as payload:
+		with open(f'{localDir}img.txt', 'rb') as img:
 			for line in img:
 				lineCount += 1
 				index = 0
@@ -28,16 +28,16 @@ def main(SWITCH_POSITION):
 					c = line[index]
 					if c in string.printable:
 						#normal character
-						payload.write('QUACK STRING'+c+'\n')
+						payload.write(f'QUACK STRING{c}' + '\n')
 						index += 1
 					else:
 						#altcode
 						key = binascii.hexlify(line[index:index+3])
-						payload.write('QUACK ALTCODE '+ansiDict[key]+'\n')
+						payload.write(f'QUACK ALTCODE {ansiDict[key]}' + '\n')
 						index += 3
 				payload.write('QUACK ENTER\n')
 		payload.write('LED FINISH')
-	print lineCount, 'lines processed'
+	localDir = '/root/udisk/payloads/' + SWITCH_POSITION + '/'
 
 if __name__ == '__main__':
 	getDict(sys.argv[1])

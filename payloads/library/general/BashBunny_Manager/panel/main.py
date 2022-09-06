@@ -31,7 +31,7 @@ class web_server(BaseHTTPRequestHandler):
             sha512.update(login)
             login_hash = sha512.hexdigest().lower()
             credentials_path = os.path.join('credentials')
-            for credential in open(credentials_path, 'r+').readlines():
+            for credential in open(credentials_path, 'r+'):
                 credentials = credential.split(':')
                 if credentials[0] == username and credentials[1].strip() == login_hash:
                     authenticated = True
@@ -70,7 +70,7 @@ class web_server(BaseHTTPRequestHandler):
                     site = getattr(getattr(module, self.path[1:]), self.path[1:])
                 except:
                     raise FileNotFoundError
-                
+
                 inst = site()
                 if not hasattr(inst, method):
                     raise MethodNotAllowedError
@@ -88,7 +88,7 @@ class web_server(BaseHTTPRequestHandler):
                 else:
                     body = func(self)
 
-            if body == None:
+            if body is None:
                 return
             self.send_response(200)
         except FileNotFoundError:
@@ -98,11 +98,9 @@ class web_server(BaseHTTPRequestHandler):
             body = "Method not allowed"
             self.send_response(405)
         except Exception as e:
-            body = "Unknown error"
-            if DEBUG:
-                body = str(e)
+            body = str(e) if DEBUG else "Unknown error"
             self.send_response(502)
-        
+
         self.send_header('Content-type', content_type)
         self.end_headers()
         self.wfile.write(body)
