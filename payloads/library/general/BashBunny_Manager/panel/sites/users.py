@@ -22,39 +22,39 @@ class users:
     
 
     def POST(self, data, handler):
-        
+
         if 'del_user' in data:
             credentials_path = os.path.join('credentials')
             logins = open(credentials_path, 'r+').readlines()
-            credentials = []
-            for login in logins:
-                if len(login.strip()) > 0 and login.split(':')[0] != data['del_user'][0]:
-                    credentials.append(login)
-            f = open(credentials_path, 'w+')
-            for credential in credentials:
-                f.write(credential)
-            f.close()
+            credentials = [
+                login
+                for login in logins
+                if len(login.strip()) > 0
+                and login.split(':')[0] != data['del_user'][0]
+            ]
+
+            with open(credentials_path, 'w+') as f:
+                for credential in credentials:
+                    f.write(credential)
             return '<!DOCTYPE html><html><head><meta http-equiv = "refresh" content = "0; url=/users" /></head></html>'
         elif 'action' in data and data['action'][0] == 'add_user':
             username = data['user'][0]
             password = data['pass'][0]
             credentials_path = os.path.join('credentials')
             logins = open(credentials_path, 'r+').readlines()
-            credentials = []
             sha512 = hashlib.sha512()
             sha512.update('{0}:{1}'.format(username, password))
             login_hash = sha512.hexdigest().lower()
-            credentials.append('{0}:{1}\n'.format(username, login_hash))
+            credentials = ['{0}:{1}\n'.format(username, login_hash)]
             for login in logins:
                 if len(login.strip()) > 0 and login.split(':')[0] != username:
                     credentials.append(login)
             os.unlink(credentials_path)
-            f = open(credentials_path, 'w+')
-            for credential in credentials:
-                f.write(credential)
-            f.close()
+            with open(credentials_path, 'w+') as f:
+                for credential in credentials:
+                    f.write(credential)
             return '<!DOCTYPE html><html><head><meta http-equiv = "refresh" content = "0; url=/users" /></head></html>'
-        
+
         return '...'
 
     
@@ -73,7 +73,7 @@ class users:
         credentials_path = os.path.join('credentials')
         if not os.path.isfile(credentials_path):
             open(credentials_path, 'w+').close()
-        for login in open(credentials_path, 'r+').readlines():
+        for login in open(credentials_path, 'r+'):
             user = login.split(':')[0]
             ret += '''
                                     <tr>

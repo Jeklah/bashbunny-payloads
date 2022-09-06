@@ -10,13 +10,11 @@ def grabEncoded(payload):
 
 def getPayloadFromSTDIN():
     import sys
-    payload = sys.stdin.read()
-    return payload
+    return sys.stdin.read()
 
 def getPayloadFromFile(fileName):
-    file = open(fileName, 'r')
-    payload = file.read()
-    file.close()
+    with open(fileName, 'r') as file:
+        payload = file.read()
     return payload
 
 def breakEncoded(encodedAttack):
@@ -25,21 +23,19 @@ def breakEncoded(encodedAttack):
     return (encoded1, encoded2)
 
 def makePrepend(encoded1, encoded2):
-    rejoiner = "encodedAttack=''.join([''.join(item) for item in zip('%s','%s')]);" %(encoded1, encoded2)
-    return rejoiner
+    return (
+        "encodedAttack=''.join([''.join(item) for item in zip('%s','%s')]);"
+        % (encoded1, encoded2)
+    )
 
 def checkForInputFile():
     import sys
     args = sys.argv
     if len(args) > 2:
         raise RuntimeError("Only valid argument is a filename")
-    if len(args) == 2:
-        return args[1]
-    else:
-        return False
+    return args[1] if len(args) == 2 else False
 
-fileName = checkForInputFile()
-if fileName:
+if fileName := checkForInputFile():
     payload = getPayloadFromFile(fileName)
 else:
     payload = getPayloadFromSTDIN()

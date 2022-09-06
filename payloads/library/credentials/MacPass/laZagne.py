@@ -102,20 +102,24 @@ def runLaZagne(category_selected='all', subcategories={}, password=None, interac
     This function will be removed, still there for compatibility with other tools
     Everything is on the config/run.py file
     """
-    for pwd_dic in run_lazagne(
-            category_selected=category_selected,
-            subcategories=subcategories,
-            password=password,
-            interactive=interactive
-    ):
-        yield pwd_dic
+    yield from run_lazagne(
+        category_selected=category_selected,
+        subcategories=subcategories,
+        password=password,
+        interactive=interactive,
+    )
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description=constant.st.banner, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--version', action='version', version='Version ' + str(constant.CURRENT_VERSION),
-                        help='laZagne version')
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'Version {str(constant.CURRENT_VERSION)}',
+        help='laZagne version',
+    )
+
 
     # ------------------------------------------- Permanent options ------------------------------------------
     # Version and verbosity
@@ -187,11 +191,10 @@ if __name__ == '__main__':
     dic = {'all': {'parents': parents, 'help': 'Run all modules'}}
     for c in categories:
         parser_tab = [PPoptional, categories[c]['parser']]
-        if 'subparser' in categories[c]:
-            if categories[c]['subparser']:
-                parser_tab += categories[c]['subparser']
+        if 'subparser' in categories[c] and categories[c]['subparser']:
+            parser_tab += categories[c]['subparser']
         parser_tab += [PWrite]
-        dic_tmp = {c: {'parents': parser_tab, 'help': 'Run %s module' % c}}
+        dic_tmp = {c: {'parents': parser_tab, 'help': f'Run {c} module'}}
         dic = dict(list(dic.items()) + list(dic_tmp.items()))
 
     subparsers = parser.add_subparsers(help='Choose a main command')
@@ -226,7 +229,7 @@ if __name__ == '__main__':
     category_selected = args['auditType']
     subcategories = clean_args(args)
 
-    for r in runLaZagne(
+    for _ in runLaZagne(
             category_selected=category_selected,
             subcategories=subcategories,
             password=args.get('password', None),

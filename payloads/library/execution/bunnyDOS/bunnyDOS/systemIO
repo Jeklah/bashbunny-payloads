@@ -165,10 +165,7 @@ def init_socket(ip):
 
     s.send_line(f"GET /?{random.randint(0, 2000)} HTTP/1.1")
 
-    ua = user_agents[0]
-    if args.randuseragent:
-        ua = random.choice(user_agents)
-
+    ua = random.choice(user_agents) if args.randuseragent else user_agents[0]
     s.send_header("User-Agent", ua)
     s.send_header("Accept-language", "en-US,en,q=0.5")
     return s
@@ -204,8 +201,7 @@ def main():
             for _ in range(socket_count - len(list_of_sockets)):
                 logging.debug("Recreating socket...")
                 try:
-                    s = init_socket(ip)
-                    if s:
+                    if s := init_socket(ip):
                         list_of_sockets.append(s)
                 except socket.error as e:
                     logging.debug(e)
